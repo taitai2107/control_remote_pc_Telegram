@@ -60,48 +60,41 @@ bot.command("menu", (ctx) => {
         ctx.reply(`lỗi khi thực thi: ${e.message} `);
       }
     });
-    //xử lý logic
-    programNameToKill = "";
-    urlweb = "";
-    command = "";
+
     bot.hears(/.+/gi, async (ctx) => {
-      let userId = ctx.from.id;
-      let userStatus = waitingForInput[userId];
-      if (userStatus === "killapp") {
-        if (programNameToKill !== null) {
-          programNameToKill = ctx.message.text;
-          try {
-            await Methods.killApp(programNameToKill);
-            ctx.reply("Đã tắt thành công: " + programNameToKill);
-          } catch (error) {
-            ctx.reply(`Lỗi khi tắt app: ${error.message}`);
-          }
-          programNameToKill = null;
+      const userId = ctx.from.id;
+      const userAction = waitingForInput[userId];
+
+      if (userAction) {
+        switch (userAction) {
+          case "killapp":
+            try {
+              await Methods.killApp(ctx.message.text);
+              ctx.reply("Đã tắt thành công: " + ctx.message.text);
+            } catch (error) {
+              ctx.reply(`Lỗi khi tắt app: ${error.message}`);
+            }
+            break;
+          case "waiturl":
+            try {
+              await Methods.openUrl(ctx.message.text);
+              ctx.reply("Mở thành công");
+            } catch (error) {
+              ctx.reply(`Lỗi khi mở: mã lỗi: ${error.message}`);
+            }
+            break;
+          case "cmd":
+            try {
+              await Methods.attack(ctx.message.text);
+              ctx.reply("Chạy thành công");
+            } catch (error) {
+              ctx.reply(`Lỗi khi thực thi: ${error.message}`);
+            }
+            break;
         }
-      } else if (userStatus === "waiturl") {
-        if (urlweb !== null) {
-          urlweb = ctx.message.text;
-          try {
-            await Methods.openUrl(urlweb);
-            ctx.reply("mở thành công ");
-          } catch (e) {
-            ctx.reply(`lỗi khi mở: mã lỗi: ${e.message}`);
-          }
-          urlweb = null;
-        }
-      } else if (userStatus === "cmd") {
-        if (command !== undefined) {
-          command = ctx.message.text;
-          try {
-            await Methods.attack(command);
-            ctx.reply("chạy thành công");
-          } catch (e) {
-            ctx.reply(`lỗi khi thực thi: ${e.message}`);
-          }
-          command = null;
-        }
+
+        delete waitingForInput[userId];
       }
-      waitingForInput[ctx.from.id] = null;
     });
   } catch (error) {
     console.log(error);
