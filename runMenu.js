@@ -1,19 +1,7 @@
 const { Telegraf } = require("telegraf");
-
-const notifier = require("node-notifier");
-const fs = require("fs");
-const { message } = require("telegraf/filters");
-const { resolve } = require("path");
-const { resourceLimits } = require("worker_threads");
-const { url } = require("inspector");
-const { error } = require("console");
 const Methods = require("./modalMenu");
 require("dotenv").config();
-let programNameToKill = null;
-let urlweb = null;
-let command = null;
 const API_KEY = process.env.API_KEY;
-const idchat = process.env.ID_CHAT;
 const bot = new Telegraf(API_KEY);
 const waitingForInput = {};
 bot.command("menu", (ctx) => {
@@ -76,6 +64,7 @@ bot.command("menu", (ctx) => {
     bot.hears(/.+/gi, async (ctx) => {
       const userId = ctx.from.id;
       const userAction = waitingForInput[userId];
+      const userChat = ctx.message.text;
 
       if (userAction) {
         switch (userAction) {
@@ -86,6 +75,7 @@ bot.command("menu", (ctx) => {
             } catch (error) {
               ctx.reply(`Lỗi khi tắt app: ${error.message}`);
             }
+            delete waitingForInput[userId];
             break;
           case "waiturl":
             try {
@@ -94,18 +84,22 @@ bot.command("menu", (ctx) => {
             } catch (error) {
               ctx.reply(`Lỗi khi mở: mã lỗi: ${error.message}`);
             }
+            delete waitingForInput[userId];
             break;
           case "cmd":
-            try {
-              const result = await Methods.attack(ctx.message.text);
-              ctx.reply(`chạy thành công: `, result);
-            } catch (error) {
-              ctx.reply(`Lỗi khi thực thi: ${error.message}`);
+            if (userChat.toLowerCase() == "exit") {
+              ctx.reply("đã đóng lệnh cmd");
+              delete waitingForInput[userId];
+            } else {
+              try {
+                const result = await Methods.attack(ctx.message.text);
+                ctx.reply(`chạy thành công: ${result}`);
+              } catch (error) {
+                ctx.reply(`Lỗi khi thực thi: ${error.message}`);
+              }
             }
             break;
         }
-
-        delete waitingForInput[userId];
       }
     });
   } catch (error) {

