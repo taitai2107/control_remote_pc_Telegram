@@ -112,7 +112,8 @@ const allAp = async () => {
 const writeAndSend = async (ctx) => {
   try {
     const parts = await allAp();
-    const fileTxt = "Appslication.txt";
+    const tempFileName = `temp_docx_${Date.now()}.txt`;
+    const fileTxt = path.join(os.tmpdir(), tempFileName);
     fs.writeFileSync(fileTxt, parts);
     await ctx.replyWithDocument({ source: fileTxt });
     ctx.reply("all application");
